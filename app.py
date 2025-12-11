@@ -137,8 +137,9 @@ def main():
             # 顯示資料預覽
             with st.expander("📊 資料預覽", expanded=False):
                 st.dataframe(
-                    df[['name', 'stars', 'language', 'description']].head(10),
-                    use_container_width=True
+                    df[['name', 'stars', 'language', 'description']],
+                    use_container_width=True,
+                    height=400  # 設定高度避免太長
                 )
             
             # 步驟 2: 向量化
