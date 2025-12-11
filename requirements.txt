@@ -1,0 +1,21 @@
+# Core Dependencies
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# GitHub API
+PyGithub>=2.1.1
+requests>=2.31.0
+
+# Machine Learning & NLP
+sentence-transformers>=2.2.2
+scikit-learn>=1.3.0
+
+# Visualization
+plotly>=5.17.0
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# Google Gemini API (for future embedding API mode)
+google-generativeai>=0.3.0
