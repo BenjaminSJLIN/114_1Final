@@ -192,12 +192,14 @@ def reduce_dimensions(
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore')
             
+            # scikit-learn 1.0+ 使用 max_iter，舊版使用 n_iter
+            # 為了相容性，我們使用 max_iter（新版本的參數名稱）
             tsne = TSNE(
                 n_components=n_components,
                 perplexity=perplexity,
                 random_state=TSNE_RANDOM_STATE,
                 init='random',
-                n_iter=1000
+                max_iter=1000  # 修改：從 n_iter 改為 max_iter
             )
             reduced = tsne.fit_transform(embeddings)
     
