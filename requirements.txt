@@ -9,7 +9,7 @@ requests>=2.31.0
 
 # Machine Learning & NLP
 sentence-transformers>=2.2.2
-scikit-learn>=1.3.0
+scikit-learn>=1.3.0,<2.0.0  # 確保使用 max_iter 而非 n_iter
 
 # Visualization
 plotly>=5.17.0
