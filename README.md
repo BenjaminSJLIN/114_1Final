@@ -8,7 +8,10 @@
 - pip (Python 套件管理工具)
 - Git (用於克隆專案)
 
-## 安裝步驟
+## 直接使用
+https://1141final-benjaminsjlin.streamlit.app/
+
+## 安裝使用
 
 ### 1. 解壓縮專案
 
