@@ -47,7 +47,7 @@ def main():
         
         keyword = st.text_input(
             "關鍵字",
-            value="machine learning",
+            value="",
             help="輸入您想搜尋的主題，例如：web framework, data science, blockchain"
         )
         
