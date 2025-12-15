@@ -143,24 +143,23 @@ def main():
             
             # 資料預覽
             with st.expander("資料預覽（點擊專案名稱可開啟 GitHub 頁面）", expanded=False):
+                # 準備顯示用的 DataFrame
                 df_display = df[['name', 'stars', 'language', 'description', 'url']].copy()
                 
-                # 組合 Markdown 連結
-                df_display['專案連結'] = df_display.apply(
-                    lambda row: f"[{row['name']}]({row['url']})", 
-                    axis=1
-                )
-                
-                # 顯示表格
+                # 顯示表格（使用 LinkColumn 讓 URL 可以點擊）
                 st.dataframe(
-                    df_display[['專案連結', 'stars', 'language', 'description']],
+                    df_display,
                     use_container_width=True,
                     height=400,
                     column_config={
-                        "專案連結": st.column_config.LinkColumn(
+                        "name": st.column_config.TextColumn(
                             "專案名稱",
+                            width="medium"
+                        ),
+                        "url": st.column_config.LinkColumn(
+                            "GitHub 連結",
                             help="點擊開啟 GitHub 頁面",
-                            max_chars=100
+                            display_text="開啟頁面"
                         ),
                         "stars": st.column_config.NumberColumn(
                             "Stars",
@@ -170,9 +169,11 @@ def main():
                             "語言"
                         ),
                         "description": st.column_config.TextColumn(
-                            "描述"
+                            "描述",
+                            width="large"
                         )
-                    }
+                    },
+                    column_order=["name", "url", "stars", "language", "description"]
                 )
             
             # 步驟 2: 向量化
