@@ -10,7 +10,7 @@ from typing import Optional
 
 def create_scatter_plot(
     df: pd.DataFrame,
-    title: str = "GitHub Repository Galaxy 🌌",
+    title: str = "GitHub Repository Galaxy",
     color_by: str = 'language',
     size_by: str = 'stars',
     show_labels: bool = True
@@ -61,38 +61,53 @@ def create_scatter_plot(
         labels={
             'x': '',
             'y': '',
-            'stars': '⭐ Stars',
-            'language': '💻 Language',
-            'description': '📝 Description'
+            'stars': 'Stars',
+            'language': 'Language',
+            'description': 'Description'
         },
         size_max=30
     )
     
-    # 自訂 hover 模板
+    # 自訂 hover 模板（包含點擊提示和 URL）
     fig.update_traces(
         hovertemplate='<b>%{hovertext}</b><br>' +
-                      '⭐ %{customdata[0]:,} stars<br>' +
-                      '💻 %{customdata[1]}<br>' +
-                      '📝 %{customdata[2]}<br>' +
+                      '%{customdata[0]:,} stars<br>' +
+                      '%{customdata[1]}<br>' +
+                      '%{customdata[2]}<br>' +
+                      '<br><a href="%{customdata[3]}" target="_blank">點擊開啟 GitHub</a><br>' +
                       '<extra></extra>',
-        customdata=df[['stars', 'language', 'description']].values if 'language' in df.columns 
-                   else df[['stars', 'description']].values,
+        customdata=df[['stars', 'language', 'description', 'url']].values if 'language' in df.columns 
+                   else df[['stars', 'description', 'url']].values,
         marker=dict(
-            line=dict(width=1, color='white'),  # 邊框
-            opacity=0.8
+            line=dict(width=2, color='white'),  # 增強邊框
+            opacity=0.85
         )
     )
     
-    # 如果需要顯示標籤
-    if show_labels and len(df) <= 30:  # 只在倉庫數量少時顯示標籤
+    # 如果使用者要求顯示標籤就顯示（不再有數量限制）
+    if show_labels:
+        repo_names = df['name'].str.split('/').str[-1]
+        
+        # 根據倉庫數量動態調整字體大小
+        if len(df) <= 20:
+            font_size = 10
+        elif len(df) <= 50:
+            font_size = 8
+        else:
+            font_size = 6
+        
         fig.add_trace(
             go.Scatter(
                 x=df['x'],
                 y=df['y'],
                 mode='text',
-                text=df['name'].str.split('/').str[-1],  # 只顯示倉庫名稱（去掉 owner）
+                text=repo_names,
                 textposition='top center',
-                textfont=dict(size=8, color='gray'),
+                textfont=dict(
+                    size=font_size,
+                    color='#666',
+                    family='Arial, sans-serif'
+                ),
                 showlegend=False,
                 hoverinfo='skip'
             )
@@ -167,7 +182,7 @@ def create_cluster_summary_plot(
 
 if __name__ == '__main__':
     # 測試視覺化模組
-    print("🧪 測試視覺化模組...")
+    print("測試視覺化模組...")
     
     # 建立測試資料
     test_data = pd.DataFrame({
@@ -182,12 +197,12 @@ if __name__ == '__main__':
     
     try:
         fig = create_scatter_plot(test_data)
-        print("✅ 視覺化測試成功！")
-        print("💡 提示: 在 Streamlit 中使用 st.plotly_chart(fig) 顯示圖表")
+        print("視覺化測試成功！")
+        print("提示: 在 Streamlit 中使用 st.plotly_chart(fig) 顯示圖表")
         
         # 儲存為 HTML（可選）
         # fig.write_html('test_plot.html')
         # print("📊 測試圖表已儲存為 test_plot.html")
         
     except Exception as e:
-        print(f"❌ 視覺化測試失敗: {e}")
+        print(f"視覺化測試失敗: {e}")

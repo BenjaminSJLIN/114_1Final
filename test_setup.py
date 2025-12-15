@@ -30,18 +30,18 @@ def test_imports():
     for package, name in required_packages:
         try:
             __import__(package)
-            print(f"✅ {name}")
+            print(f"[OK] {name}")
         except ImportError:
-            print(f"❌ {name} - 請執行: pip install {package}")
+            print(f"[FAIL] {name} - 請執行: pip install {package}")
             all_ok = False
     
     print("\n可選套件：")
     for package, name in optional_packages:
         try:
             __import__(package)
-            print(f"✅ {name}")
+            print(f"[OK] {name}")
         except ImportError:
-            print(f"⚠️  {name} - 如需使用 Gemini API 模式，請安裝")
+            print(f"[WARN] {name} - 如需使用 Gemini API 模式，請安裝")
     
     return all_ok
 
@@ -55,21 +55,21 @@ def test_config():
     try:
         from src.config import GITHUB_TOKEN, EMBEDDING_METHOD, validate_config
         
-        print(f"GitHub Token: {'✅ 已設定' if GITHUB_TOKEN else '❌ 未設定'}")
+        print(f"GitHub Token: {'已設定' if GITHUB_TOKEN else '未設定'}")
         print(f"Embedding 模式: {EMBEDDING_METHOD}")
         
         errors = validate_config()
         if errors:
-            print("\n⚠️  配置警告：")
+            print("\n配置警告：")
             for error in errors:
                 print(f"  {error}")
             return False
         else:
-            print("\n✅ 配置檢查通過！")
+            print("\n配置檢查通過！")
             return True
     
     except Exception as e:
-        print(f"❌ 配置測試失敗: {e}")
+        print(f"配置測試失敗: {e}")
         return False
 
 
@@ -91,11 +91,11 @@ def test_github_api():
             print(df[['name', 'stars']].to_string(index=False))
             return True
         else:
-            print("⚠️  未找到結果")
+            print("未找到結果")
             return False
     
     except Exception as e:
-        print(f"❌ GitHub API 測試失敗: {e}")
+        print(f"GitHub API 測試失敗: {e}")
         return False
 
 
@@ -116,16 +116,16 @@ def test_embedding():
         
         print("正在測試向量化...")
         embeddings = create_embeddings(test_texts, method='local')
-        print(f"✅ 向量化成功！形狀: {embeddings.shape}")
+        print(f"向量化成功！形狀: {embeddings.shape}")
         
         print("\n正在測試降維...")
         coords = reduce_dimensions(embeddings)
-        print(f"✅ 降維成功！形狀: {coords.shape}")
+        print(f"降維成功！形狀: {coords.shape}")
         
         return True
     
     except Exception as e:
-        print(f"❌ Embedding 測試失敗: {e}")
+        print(f"Embedding 測試失敗: {e}")
         return False
 
 
@@ -151,17 +151,17 @@ def test_visualization():
         })
         
         fig = create_scatter_plot(test_df)
-        print("✅ 視覺化測試成功！")
+        print("視覺化測試成功！")
         return True
     
     except Exception as e:
-        print(f"❌ 視覺化測試失敗: {e}")
+        print(f"視覺化測試失敗: {e}")
         return False
 
 
 def main():
     """執行所有測試"""
-    print("\n🧪 GitHub Galaxy Explorer - 系統測試\n")
+    print("\nGitHub Galaxy Explorer - 系統測試\n")
     
     results = {
         "套件安裝": test_imports(),
@@ -177,16 +177,16 @@ def main():
     print("=" * 60)
     
     for test_name, result in results.items():
-        status = "✅ 通過" if result else "❌ 失敗"
+        status = "[PASS]" if result else "[FAIL]"
         print(f"{test_name}: {status}")
     
     all_passed = all(results.values())
     
     if all_passed:
-        print("\n🎉 所有測試通過！您可以執行: streamlit run app.py")
+        print("\n所有測試通過！您可以執行: streamlit run app.py")
         return 0
     else:
-        print("\n⚠️  部分測試失敗，請檢查上述錯誤訊息")
+        print("\n部分測試失敗，請檢查上述錯誤訊息")
         return 1
 
 

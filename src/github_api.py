@@ -77,7 +77,7 @@ def fetch_repos_by_keyword(
         # 檢查速率限制
         remaining = int(response.headers.get('X-RateLimit-Remaining', 0))
         if remaining < 10:
-            print(f"⚠️ 警告：GitHub API 剩餘請求次數僅剩 {remaining}")
+            print(f"警告：GitHub API 剩餘請求次數僅剩 {remaining}")
         
         # 檢查回應狀態
         if response.status_code == 403:
@@ -104,7 +104,7 @@ def fetch_repos_by_keyword(
             })
         
         if not repos:
-            print(f"⚠️ 未找到符合 '{keyword}' 的倉庫")
+            print(f"未找到符合 '{keyword}' 的倉庫")
         
         return pd.DataFrame(repos)
     
@@ -142,18 +142,18 @@ def get_repo_details(owner: str, repo: str) -> dict:
 
 if __name__ == '__main__':
     # 測試 API 功能
-    print("🧪 測試 GitHub API 模組...")
+    print("測試 GitHub API 模組...")
     
     try:
         # 測試搜尋
         df = fetch_repos_by_keyword('machine learning', max_results=5)
-        print(f"\n✅ 成功搜尋到 {len(df)} 個倉庫：")
+        print(f"\n成功搜尋到 {len(df)} 個倉庫：")
         print(df[['name', 'stars', 'language']].to_string(index=False))
         
         # 檢查是否有空描述
         empty_desc = df[df['description'] == 'No description available']
         if not empty_desc.empty:
-            print(f"\n📝 發現 {len(empty_desc)} 個倉庫沒有描述（已自動填充）")
+            print(f"\n發現 {len(empty_desc)} 個倉庫沒有描述（已自動填充）")
         
     except GitHubAPIError as e:
-        print(f"\n❌ 錯誤：{e}")
+        print(f"\n錯誤：{e}")

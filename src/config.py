@@ -74,25 +74,25 @@ def validate_config():
     errors = []
     
     if not GITHUB_TOKEN:
-        errors.append("❌ 缺少 GITHUB_TOKEN。請在 .env 檔案中設定或使用 Streamlit secrets。")
+        errors.append("缺少 GITHUB_TOKEN。請在 .env 檔案中設定或使用 Streamlit secrets。")
     
     if EMBEDDING_METHOD == 'gemini' and not GEMINI_API_KEY:
-        errors.append("❌ EMBEDDING_METHOD 設為 'gemini'，但缺少 GEMINI_API_KEY。")
+        errors.append("EMBEDDING_METHOD 設為 'gemini'，但缺少 GEMINI_API_KEY。")
     
     return errors
 
 
 if __name__ == '__main__':
     # 測試配置載入
-    print("🔧 配置檢查：")
-    print(f"GitHub Token: {'✅ 已設定' if GITHUB_TOKEN else '❌ 未設定'}")
-    print(f"Gemini API Key: {'✅ 已設定' if GEMINI_API_KEY else '❌ 未設定'}")
+    print("配置檢查：")
+    print(f"GitHub Token: {'已設定' if GITHUB_TOKEN else '未設定'}")
+    print(f"Gemini API Key: {'已設定' if GEMINI_API_KEY else '未設定'}")
     print(f"Embedding 模式: {EMBEDDING_METHOD}")
     
     errors = validate_config()
     if errors:
-        print("\n⚠️ 配置錯誤：")
+        print("\n配置錯誤：")
         for error in errors:
             print(f"  {error}")
     else:
-        print("\n✅ 配置正常！")
+        print("\n配置正常！")

@@ -13,7 +13,7 @@ from src.visualization import create_scatter_plot
 # 頁面配置
 st.set_page_config(
     page_title="GitHub Galaxy Explorer",
-    page_icon="🌌",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -23,7 +23,7 @@ def main():
     """主應用程式邏輯"""
     
     # 標題與說明
-    st.title("🌌 GitHub Galaxy Explorer")
+    st.title("GitHub Galaxy Explorer")
     st.markdown("""
     探索 GitHub 開源專案的語義宇宙！輸入關鍵字，我們將為您繪製一張 **2D 語義地圖**，
     相似的專案會自動聚集在一起。
@@ -31,7 +31,7 @@ def main():
     
     # 側邊欄 - 配置與設定
     with st.sidebar:
-        st.header("⚙️ 設定")
+        st.header("設定")
         
         # 檢查配置
         config_errors = validate_config()
@@ -39,15 +39,15 @@ def main():
             st.error("配置錯誤：")
             for error in config_errors:
                 st.write(error)
-            st.info("💡 請在專案根目錄建立 `.env` 檔案，參考 `.env.example`")
+            st.info("請在專案根目錄建立 `.env` 檔案，參考 `.env.example`")
             st.stop()
         else:
-            st.success("✅ 配置正常")
+            st.success("配置正常")
         
         st.markdown("---")
         
         # 搜尋參數
-        st.subheader("🔍 搜尋參數")
+        st.subheader("搜尋參數")
         
         keyword = st.text_input(
             "關鍵字",
@@ -61,7 +61,7 @@ def main():
             max_value=100,
             value=30,
             step=5,
-            help="⚠️ 數量越多，計算時間越長（推薦 30-50 個）"
+            help="數量越多，計算時間越長（推薦 30-50 個）"
         )
         
         language = st.selectbox(
@@ -73,27 +73,8 @@ def main():
         
         st.markdown("---")
         
-        # Embedding 方法選擇
-        st.subheader("🧠 Embedding 方法")
-        
-        embedding_options = {
-            "本地模型 (sentence-transformers)": "local",
-            "Gemini API (google-generativeai)": "gemini"
-        }
-        
-        selected_method_display = st.radio(
-            "選擇方法：",
-            options=list(embedding_options.keys()),
-            index=0 if EMBEDDING_METHOD == 'local' else 1,
-            help="本地模型：免費、離線可用\nGemini API：更快啟動、更高質量"
-        )
-        
-        selected_method = embedding_options[selected_method_display]
-        
-        st.markdown("---")
-        
         # 視覺化選項
-        st.subheader("🎨 視覺化選項")
+        st.subheader("視覺化選項")
         
         color_by = st.selectbox(
             "顏色編碼",
@@ -105,23 +86,53 @@ def main():
         show_labels = st.checkbox(
             "顯示標籤",
             value=False,
-            help="在圖表上顯示倉庫名稱（只在結果少於 30 個時有效）"
+            help="在圖表上顯示倉庫名稱（數量多時字體會自動縮小）"
         )
         
         st.markdown("---")
         
+        # 進階探索功能
+        st.subheader("進階探索")
+        
+        enable_advanced = st.checkbox(
+            "啟用進階篩選",
+            value=False,
+            help="在搜尋結果中進一步篩選語義相近的倉庫"
+        )
+        
+        advanced_keyword = ""
+        advanced_count = 10
+        
+        if enable_advanced:
+            advanced_keyword = st.text_input(
+                "進階關鍵字",
+                value="",
+                help="輸入更具體的關鍵字，系統會找出與此關鍵字語義最相近的倉庫"
+            )
+            
+            advanced_count = st.slider(
+                "篩選數量",
+                min_value=5,
+                max_value=50,
+                value=10,
+                step=5,
+                help="從搜尋結果中保留最相近的幾個倉庫"
+            )
+        
+        st.markdown("---")
+        
         # 執行按鈕
-        search_button = st.button("🚀 開始探索", type="primary", use_container_width=True)
+        search_button = st.button("開始探索", type="primary", use_container_width=True)
     
     # 主要內容區域
     if search_button:
         if not keyword.strip():
-            st.warning("⚠️ 請輸入關鍵字！")
+            st.warning("請輸入關鍵字！")
             return
         
         try:
             # 步驟 1: 獲取資料
-            with st.spinner(f"🔍 正在搜尋 '{keyword}' 相關的倉庫..."):
+            with st.spinner(f"正在搜尋 '{keyword}' 相關的倉庫..."):
                 df = fetch_repos_by_keyword(
                     keyword=keyword,
                     max_results=max_results,
@@ -132,75 +143,166 @@ def main():
                 st.warning("未找到符合條件的倉庫，請嘗試其他關鍵字。")
                 return
             
-            st.success(f"✅ 找到 {len(df)} 個倉庫！")
+            st.success(f"找到 {len(df)} 個倉庫！")
             
-            # 顯示資料預覽
-            with st.expander("📊 資料預覽", expanded=False):
+            # 顯示資料預覽（包含可點擊的連結）
+            with st.expander("資料預覽（點擊專案名稱可開啟 GitHub 頁面）", expanded=False):
+                # 創建包含超連結的顯示用 DataFrame
+                df_display = df[['name', 'stars', 'language', 'description', 'url']].copy()
+                
+                # 將專案名稱和 URL 組合成 Markdown 連結格式
+                df_display['專案連結'] = df_display.apply(
+                    lambda row: f"[{row['name']}]({row['url']})", 
+                    axis=1
+                )
+                
+                # 顯示表格（Streamlit 會自動渲染 Markdown 連結）
                 st.dataframe(
-                    df[['name', 'stars', 'language', 'description']],
+                    df_display[['專案連結', 'stars', 'language', 'description']],
                     use_container_width=True,
-                    height=400  # 設定高度避免太長
+                    height=400,
+                    column_config={
+                        "專案連結": st.column_config.LinkColumn(
+                            "專案名稱",
+                            help="點擊開啟 GitHub 頁面",
+                            max_chars=100
+                        ),
+                        "stars": st.column_config.NumberColumn(
+                            "Stars",
+                            format="%d"
+                        ),
+                        "language": st.column_config.TextColumn(
+                            "語言"
+                        ),
+                        "description": st.column_config.TextColumn(
+                            "描述"
+                        )
+                    }
                 )
             
             # 步驟 2: 向量化
-            with st.spinner(f"🧠 正在使用 {selected_method_display} 進行向量化..."):
+            with st.spinner(f"正在使用 Embedding 進行向量化..."):
                 embeddings = create_embeddings(
                     df['description'].tolist(),
-                    method=selected_method
+                    method=EMBEDDING_METHOD  # 直接使用 .env 中的設定
                 )
             
-            st.success(f"✅ 向量化完成！維度: {embeddings.shape}")
+            st.success(f"向量化完成！維度: {embeddings.shape}")
             
-            # 步驟 3: 降維
-            with st.spinner("📉 正在使用 t-SNE 降維至 2D..."):
-                coords = reduce_dimensions(embeddings)
-                df['x'] = coords[:, 0]
-                df['y'] = coords[:, 1]
+            # 保存原始數據（用於繪製原始圖）
+            df_original = df.copy()
+            embeddings_original = embeddings.copy()
             
-            st.success("✅ 降維完成！")
+            # 步驟 3: 降維（原始完整結果）
+            with st.spinner("正在使用 t-SNE 降維至 2D..."):
+                coords_original = reduce_dimensions(embeddings_original)
+                df_original['x'] = coords_original[:, 0]
+                df_original['y'] = coords_original[:, 1]
             
-            # 步驟 4: 視覺化
+            st.success("降維完成！")
+            
+            # 步驟 4: 顯示原始完整結果的視覺化
             st.markdown("---")
-            st.header("🗺️ 語義地圖")
-            st.markdown("""
+            st.header("語義地圖 - 完整結果")
+            st.markdown(f"""
             **如何解讀**：相近的點代表語義相似的專案。
-            將滑鼠懸停在點上可查看詳細資訊。
+            共找到 **{len(df_original)}** 個倉庫。
             """)
             
-            fig = create_scatter_plot(
-                df,
-                title=f"'{keyword}' 的語義地圖",
+            fig_original = create_scatter_plot(
+                df_original,
+                title=f"'{keyword}' 的語義地圖（完整結果）",
                 color_by=color_by,
                 show_labels=show_labels
             )
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig_original, use_container_width=True)
+            
+            # 進階篩選：根據進階關鍵字篩選最相近的倉庫
+            if enable_advanced and advanced_keyword.strip():
+                st.markdown("---")
+                st.header("語義地圖 - 進階篩選結果")
+                
+                with st.spinner(f"正在使用進階關鍵字 '{advanced_keyword}' 進行語義篩選..."):
+                    # 將進階關鍵字也進行向量化
+                    keyword_embedding = create_embeddings(
+                        [advanced_keyword],
+                        method=EMBEDDING_METHOD
+                    )
+                    
+                    # 計算每個倉庫描述與進階關鍵字的餘弦相似度
+                    import numpy as np
+                    from sklearn.metrics.pairwise import cosine_similarity
+                    
+                    similarities = cosine_similarity(embeddings, keyword_embedding).flatten()
+                    
+                    # 將相似度添加到 DataFrame
+                    df['similarity'] = similarities
+                    
+                    # 根據相似度排序並取前 N 個
+                    df_filtered = df.nlargest(min(advanced_count, len(df)), 'similarity').copy()
+                    
+                    # 更新 embeddings 以匹配篩選後的結果
+                    filtered_indices = df_filtered.index.tolist()
+                    embeddings_filtered = embeddings[filtered_indices]
+                    
+                    # 重置索引
+                    df_filtered = df_filtered.reset_index(drop=True)
+                
+                st.success(f"進階篩選完成！從 {len(df)} 個倉庫中篩選出 {len(df_filtered)} 個最相近的倉庫")
+                
+                # 對篩選後的結果進行降維
+                with st.spinner("正在對篩選結果降維..."):
+                    coords_filtered = reduce_dimensions(embeddings_filtered)
+                    df_filtered['x'] = coords_filtered[:, 0]
+                    df_filtered['y'] = coords_filtered[:, 1]
+                
+                st.markdown(f"""
+                **篩選條件**：與 "{advanced_keyword}" 語義最相近的 **{len(df_filtered)}** 個倉庫。
+                相似度範圍：{df_filtered['similarity'].min():.3f} - {df_filtered['similarity'].max():.3f}
+                """)
+                
+                # 繪製篩選後的圖表
+                fig_filtered = create_scatter_plot(
+                    df_filtered,
+                    title=f"進階篩選：'{advanced_keyword}'",
+                    color_by=color_by,
+                    show_labels=show_labels
+                )
+                
+                st.plotly_chart(fig_filtered, use_container_width=True)
+                
+                # 使用篩選後的數據進行後續統計
+                df_for_stats = df_filtered
+            else:
+                # 使用原始數據進行統計
+                df_for_stats = df_original
             
             # 統計資訊
             st.markdown("---")
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
-                st.metric("倉庫總數", len(df))
+                st.metric("倉庫總數", len(df_for_stats))
             
             with col2:
-                st.metric("總星星數", f"{df['stars'].sum():,}")
+                st.metric("總星星數", f"{df_for_stats['stars'].sum():,}")
             
             with col3:
-                top_lang = df['language'].mode()[0] if not df['language'].mode().empty else "Unknown"
+                top_lang = df_for_stats['language'].mode()[0] if not df_for_stats['language'].mode().empty else "Unknown"
                 st.metric("最常見語言", top_lang)
             
             with col4:
-                avg_stars = int(df['stars'].mean())
+                avg_stars = int(df_for_stats['stars'].mean())
                 st.metric("平均星星數", f"{avg_stars:,}")
             
             # 下載資料
             st.markdown("---")
-            st.subheader("💾 下載資料")
+            st.subheader("下載資料")
             
-            csv = df.to_csv(index=False, encoding='utf-8-sig')
+            csv = df_for_stats.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
-                label="📥 下載 CSV",
+                label="下載 CSV",
                 data=csv,
                 file_name=f"github_galaxy_{keyword.replace(' ', '_')}.csv",
                 mime="text/csv"
@@ -215,52 +317,7 @@ def main():
     
     else:
         # 未搜尋時顯示說明
-        st.info("👈 請在左側設定搜尋參數，然後點擊「開始探索」按鈕！")
-        
-        # 功能介紹
-        st.markdown("---")
-        st.header("✨ 功能特色")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown("""
-            ### 🔍 智慧搜尋
-            - 關鍵字搜尋 GitHub 倉庫
-            - 支援程式語言篩選
-            - 可自訂結果數量
-            """)
-        
-        with col2:
-            st.markdown("""
-            ### 🧠 語義分析
-            - 使用 AI 模型理解專案描述
-            - 支援本地與 API 兩種模式
-            - 自動聚類相似專案
-            """)
-        
-        with col3:
-            st.markdown("""
-            ### 🎨 視覺化
-            - 2D 互動式地圖
-            - 懸停顯示詳細資訊
-            - 可依語言/星星數上色
-            """)
-        
-        # 使用範例
-        st.markdown("---")
-        st.header("💡 使用範例")
-        
-        examples = [
-            {"keyword": "machine learning", "desc": "探索機器學習相關專案"},
-            {"keyword": "web framework", "desc": "比較不同的網頁框架"},
-            {"keyword": "data visualization", "desc": "發現數據視覺化工具"},
-            {"keyword": "blockchain", "desc": "了解區塊鏈生態系統"}
-        ]
-        
-        for example in examples:
-            st.markdown(f"- **{example['keyword']}** - {example['desc']}")
-
+        st.info("請在左側設定搜尋參數，然後點擊「開始探索」按鈕！")
 
 if __name__ == '__main__':
     main()

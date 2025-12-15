@@ -34,9 +34,9 @@ def get_local_embedding_model():
     if _local_model is None:
         try:
             from sentence_transformers import SentenceTransformer
-            print(f"📥 正在載入本地 Embedding 模型: {LOCAL_EMBEDDING_MODEL}...")
+            print(f"正在載入本地 Embedding 模型: {LOCAL_EMBEDDING_MODEL}...")
             _local_model = SentenceTransformer(LOCAL_EMBEDDING_MODEL)
-            print("✅ 模型載入完成！")
+            print("模型載入完成！")
         except ImportError:
             raise ImportError(
                 "請安裝 sentence-transformers:\n"
@@ -61,7 +61,7 @@ def configure_gemini_api():
             import google.generativeai as genai
             genai.configure(api_key=GEMINI_API_KEY)
             _gemini_configured = True
-            print("✅ Gemini API 配置完成！")
+            print("Gemini API 配置完成！")
         except ImportError:
             raise ImportError(
                 "請安裝 google-generativeai:\n"
@@ -81,9 +81,9 @@ def create_embeddings_local(texts: List[str]) -> np.ndarray:
     """
     model = get_local_embedding_model()
     
-    print(f"🧠 正在使用本地模型對 {len(texts)} 段文字進行向量化...")
+    print(f"正在使用本地模型對 {len(texts)} 段文字進行向量化...")
     embeddings = model.encode(texts, show_progress_bar=True)
-    print(f"✅ 向量化完成！維度: {embeddings.shape}")
+    print(f"向量化完成！維度: {embeddings.shape}")
     
     return embeddings
 
@@ -102,7 +102,7 @@ def create_embeddings_gemini(texts: List[str]) -> np.ndarray:
     
     configure_gemini_api()
     
-    print(f"🌐 正在使用 Gemini API 對 {len(texts)} 段文字進行向量化...")
+    print(f"正在使用 Gemini API 對 {len(texts)} 段文字進行向量化...")
     
     embeddings = []
     for i, text in enumerate(texts):
@@ -119,12 +119,12 @@ def create_embeddings_gemini(texts: List[str]) -> np.ndarray:
                 print(f"  進度: {i + 1}/{len(texts)}")
         
         except Exception as e:
-            print(f"⚠️ 警告：文字 {i} 向量化失敗，使用零向量替代。錯誤: {e}")
+            print(f"警告：文字 {i} 向量化失敗，使用零向量替代。錯誤: {e}")
             # 使用零向量作為後備方案
             embeddings.append([0.0] * 768)
     
     embeddings_array = np.array(embeddings)
-    print(f"✅ 向量化完成！維度: {embeddings_array.shape}")
+    print(f"向量化完成！維度: {embeddings_array.shape}")
     
     return embeddings_array
 
@@ -184,7 +184,7 @@ def reduce_dimensions(
     # 確保 perplexity 合法
     perplexity = min(perplexity, n_samples - 1)
     
-    print(f"📉 正在使用 {method.upper()} 將 {n_samples} 個向量降維至 {n_components}D...")
+    print(f"正在使用 {method.upper()} 將 {n_samples} 個向量降維至 {n_components}D...")
     print(f"   參數: perplexity={perplexity}")
     
     if method == 'tsne':
@@ -220,13 +220,13 @@ def reduce_dimensions(
     else:
         raise ValueError(f"不支援的降維方法: {method}")
     
-    print(f"✅ 降維完成！輸出維度: {reduced.shape}")
+    print(f"降維完成！輸出維度: {reduced.shape}")
     return reduced
 
 
 if __name__ == '__main__':
     # 測試 Embedding 模組
-    print("🧪 測試 Embedding 模組...\n")
+    print("測試 Embedding 模組...\n")
     
     # 測試資料
     test_texts = [
@@ -242,13 +242,13 @@ if __name__ == '__main__':
     print("=" * 50)
     try:
         embeddings_local = create_embeddings(test_texts, method='local')
-        print(f"✅ 本地模型測試成功！向量維度: {embeddings_local.shape}\n")
+        print(f"本地模型測試成功！向量維度: {embeddings_local.shape}\n")
         
         # 測試降維
         coords = reduce_dimensions(embeddings_local)
-        print(f"✅ 降維測試成功！座標:\n{coords}\n")
+        print(f"降維測試成功！座標:\n{coords}\n")
     except Exception as e:
-        print(f"❌ 本地模型測試失敗: {e}\n")
+        print(f"本地模型測試失敗: {e}\n")
     
     # 測試 Gemini API（僅在配置時）
     if GEMINI_API_KEY:
@@ -257,8 +257,8 @@ if __name__ == '__main__':
         print("=" * 50)
         try:
             embeddings_gemini = create_embeddings(test_texts[:2], method='gemini')  # 只測試 2 個節省配額
-            print(f"✅ Gemini API 測試成功！向量維度: {embeddings_gemini.shape}\n")
+            print(f"Gemini API 測試成功！向量維度: {embeddings_gemini.shape}\n")
         except Exception as e:
-            print(f"❌ Gemini API 測試失敗: {e}\n")
+            print(f"Gemini API 測試失敗: {e}\n")
     else:
-        print("⏭️  跳過 Gemini API 測試（未設定 GEMINI_API_KEY）\n")
+        print("跳過 Gemini API 測試（未設定 GEMINI_API_KEY）\n")
