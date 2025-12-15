@@ -1,7 +1,4 @@
-"""
-GitHub Galaxy Explorer - Streamlit 主應用程式
-探索 GitHub 倉庫的語義地圖
-"""
+"""GitHub Explorer"""
 import streamlit as st
 import pandas as pd
 from src.config import validate_config, EMBEDDING_METHOD
@@ -12,7 +9,7 @@ from src.visualization import create_scatter_plot
 
 # 頁面配置
 st.set_page_config(
-    page_title="GitHub Galaxy Explorer",
+    page_title="GitHub Explorer",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -20,16 +17,15 @@ st.set_page_config(
 
 
 def main():
-    """主應用程式邏輯"""
+    """主程式"""
     
     # 標題與說明
-    st.title("GitHub Galaxy Explorer")
+    st.title("GitHub Explorer")
     st.markdown("""
-    探索 GitHub 開源專案的語義宇宙！輸入關鍵字，我們將為您繪製一張 **2D 語義地圖**，
-    相似的專案會自動聚集在一起。
+    探索 GitHub 開源專案
     """)
     
-    # 側邊欄 - 配置與設定
+    # 側邊欄
     with st.sidebar:
         st.header("設定")
         
@@ -124,7 +120,7 @@ def main():
         # 執行按鈕
         search_button = st.button("開始探索", type="primary", use_container_width=True)
     
-    # 主要內容區域
+    # 主要內容
     if search_button:
         if not keyword.strip():
             st.warning("請輸入關鍵字！")
@@ -145,18 +141,17 @@ def main():
             
             st.success(f"找到 {len(df)} 個倉庫！")
             
-            # 顯示資料預覽（包含可點擊的連結）
+            # 資料預覽
             with st.expander("資料預覽（點擊專案名稱可開啟 GitHub 頁面）", expanded=False):
-                # 創建包含超連結的顯示用 DataFrame
                 df_display = df[['name', 'stars', 'language', 'description', 'url']].copy()
                 
-                # 將專案名稱和 URL 組合成 Markdown 連結格式
+                # 組合 Markdown 連結
                 df_display['專案連結'] = df_display.apply(
                     lambda row: f"[{row['name']}]({row['url']})", 
                     axis=1
                 )
                 
-                # 顯示表格（Streamlit 會自動渲染 Markdown 連結）
+                # 顯示表格
                 st.dataframe(
                     df_display[['專案連結', 'stars', 'language', 'description']],
                     use_container_width=True,
@@ -189,11 +184,11 @@ def main():
             
             st.success(f"向量化完成！維度: {embeddings.shape}")
             
-            # 保存原始數據（用於繪製原始圖）
+            # 保存原始數據
             df_original = df.copy()
             embeddings_original = embeddings.copy()
             
-            # 步驟 3: 降維（原始完整結果）
+            # 步驟 3: 降維
             with st.spinner("正在使用 t-SNE 降維至 2D..."):
                 coords_original = reduce_dimensions(embeddings_original)
                 df_original['x'] = coords_original[:, 0]
@@ -201,7 +196,7 @@ def main():
             
             st.success("降維完成！")
             
-            # 步驟 4: 顯示原始完整結果的視覺化
+            # 步驟 4: 視覺化
             st.markdown("---")
             st.header("語義地圖 - 完整結果")
             st.markdown(f"""
@@ -218,7 +213,7 @@ def main():
             
             st.plotly_chart(fig_original, use_container_width=True)
             
-            # 進階篩選：根據進階關鍵字篩選最相近的倉庫
+            # 進階篩選
             if enable_advanced and advanced_keyword.strip():
                 st.markdown("---")
                 st.header("語義地圖 - 進階篩選結果")
@@ -230,7 +225,7 @@ def main():
                         method=EMBEDDING_METHOD
                     )
                     
-                    # 計算每個倉庫描述與進階關鍵字的餘弦相似度
+                    # 計算餘弦相似度
                     import numpy as np
                     from sklearn.metrics.pairwise import cosine_similarity
                     
@@ -239,7 +234,7 @@ def main():
                     # 將相似度添加到 DataFrame
                     df['similarity'] = similarities
                     
-                    # 根據相似度排序並取前 N 個
+                    # 排序取前 N 個
                     df_filtered = df.nlargest(min(advanced_count, len(df)), 'similarity').copy()
                     
                     # 更新 embeddings 以匹配篩選後的結果
@@ -304,7 +299,7 @@ def main():
             st.download_button(
                 label="下載 CSV",
                 data=csv,
-                file_name=f"github_galaxy_{keyword.replace(' ', '_')}.csv",
+                file_name=f"github_explorer_{keyword.replace(' ', '_')}.csv",
                 mime="text/csv"
             )
         
@@ -316,7 +311,7 @@ def main():
             st.exception(e)
     
     else:
-        # 未搜尋時顯示說明
+        # 初始說明
         st.info("請在左側設定搜尋參數，然後點擊「開始探索」按鈕！")
 
 if __name__ == '__main__':

@@ -161,7 +161,7 @@ def test_visualization():
 
 def main():
     """執行所有測試"""
-    print("\nGitHub Galaxy Explorer - 系統測試\n")
+    print("\nGitHub Explorer - 系統測試\n")
     
     results = {
         "套件安裝": test_imports(),

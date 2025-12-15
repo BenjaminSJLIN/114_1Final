@@ -1,9 +1,4 @@
-"""
-Embedding 與降維模組
-支援兩種 Embedding 方式：
-1. 本地模型 (sentence-transformers)
-2. Gemini API (google-generativeai)
-"""
+"""Embedding 與降維"""
 import numpy as np
 from typing import List, Literal
 from sklearn.manifold import TSNE
@@ -17,18 +12,13 @@ from src.config import (
     TSNE_RANDOM_STATE
 )
 
-# 全域變數用於快取模型
+# 快取模型
 _local_model = None
 _gemini_configured = False
 
 
 def get_local_embedding_model():
-    """
-    取得本地 Embedding 模型（單例模式，避免重複載入）
-    
-    Returns:
-        SentenceTransformer 模型實例
-    """
+    """取得本地 Embedding 模型（單例模式）"""
     global _local_model
     
     if _local_model is None:
@@ -61,7 +51,7 @@ def configure_gemini_api():
             import google.generativeai as genai
             genai.configure(api_key=GEMINI_API_KEY)
             _gemini_configured = True
-            print("Gemini API 配置完成！")
+            print("配置完成！")
         except ImportError:
             raise ImportError(
                 "請安裝 google-generativeai:\n"
@@ -70,15 +60,7 @@ def configure_gemini_api():
 
 
 def create_embeddings_local(texts: List[str]) -> np.ndarray:
-    """
-    使用本地模型建立 Embeddings
-    
-    Args:
-        texts: 文字列表
-        
-    Returns:
-        Embedding 向量矩陣 (shape: [len(texts), embedding_dim])
-    """
+    """本地模型向量化"""
     model = get_local_embedding_model()
     
     print(f"正在使用本地模型對 {len(texts)} 段文字進行向量化...")
@@ -89,15 +71,7 @@ def create_embeddings_local(texts: List[str]) -> np.ndarray:
 
 
 def create_embeddings_gemini(texts: List[str]) -> np.ndarray:
-    """
-    使用 Gemini API 建立 Embeddings
-    
-    Args:
-        texts: 文字列表
-        
-    Returns:
-        Embedding 向量矩陣
-    """
+    """Gemini API 向量化"""
     import google.generativeai as genai
     
     configure_gemini_api()
@@ -107,7 +81,7 @@ def create_embeddings_gemini(texts: List[str]) -> np.ndarray:
     embeddings = []
     for i, text in enumerate(texts):
         try:
-            # 使用 Gemini 的 Embedding 模型
+            # Gemini Embedding
             result = genai.embed_content(
                 model="models/text-embedding-004",
                 content=text,
@@ -119,8 +93,7 @@ def create_embeddings_gemini(texts: List[str]) -> np.ndarray:
                 print(f"  進度: {i + 1}/{len(texts)}")
         
         except Exception as e:
-            print(f"警告：文字 {i} 向量化失敗，使用零向量替代。錯誤: {e}")
-            # 使用零向量作為後備方案
+            # 零向量後備
             embeddings.append([0.0] * 768)
     
     embeddings_array = np.array(embeddings)
@@ -133,15 +106,11 @@ def create_embeddings(
     texts: List[str],
     method: Literal['local', 'gemini'] = None
 ) -> np.ndarray:
-    """
-    建立文字 Embeddings（自動根據配置選擇方法）
+    """建立 Embeddings
     
     Args:
         texts: 文字列表
-        method: 強制指定方法 ('local' 或 'gemini')，若為 None 則使用配置檔設定
-        
-    Returns:
-        Embedding 向量矩陣
+        method: 指定方法 (local/gemini)
     """
     # 決定使用哪種方法
     selected_method = method or EMBEDDING_METHOD
@@ -163,25 +132,21 @@ def reduce_dimensions(
     perplexity: int = None,
     method: Literal['tsne', 'umap'] = 'tsne'
 ) -> np.ndarray:
-    """
-    將高維向量降維至 2D（用於可視化）
+    """降維至 2D
     
     Args:
-        embeddings: 高維向量矩陣
-        n_components: 目標維度（預設 2D）
-        perplexity: t-SNE 的 perplexity 參數（推薦值：樣本數的 5-10%）
-        method: 降維方法 ('tsne' 或 'umap')
-        
-    Returns:
-        降維後的座標矩陣 (shape: [n_samples, n_components])
+        embeddings: 高維向量
+        n_components: 目標維度
+        perplexity: t-SNE 參數
+        method: 降維方法
     """
     n_samples = embeddings.shape[0]
     
-    # 自動調整 perplexity
+    # 調整 perplexity
     if perplexity is None:
         perplexity = min(TSNE_PERPLEXITY, max(2, n_samples // 10))
     
-    # 確保 perplexity 合法
+    # 確保合法
     perplexity = min(perplexity, n_samples - 1)
     
     print(f"正在使用 {method.upper()} 將 {n_samples} 個向量降維至 {n_components}D...")
@@ -192,19 +157,18 @@ def reduce_dimensions(
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore')
             
-            # scikit-learn 1.0+ 使用 max_iter，舊版使用 n_iter
-            # 為了相容性，我們使用 max_iter（新版本的參數名稱）
+            # 相容性處理
             tsne = TSNE(
                 n_components=n_components,
                 perplexity=perplexity,
                 random_state=TSNE_RANDOM_STATE,
                 init='random',
-                max_iter=1000  # 修改：從 n_iter 改為 max_iter
+                max_iter=1000
             )
             reduced = tsne.fit_transform(embeddings)
     
     elif method == 'umap':
-        # UMAP (需要額外安裝)
+        # UMAP
         try:
             from umap import UMAP
             reducer = UMAP(

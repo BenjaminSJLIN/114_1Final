@@ -1,7 +1,4 @@
-"""
-配置管理模組
-負責從 .env 檔案或 Streamlit secrets 載入環境變數
-"""
+"""配置管理"""
 import os
 from pathlib import Path
 from typing import Optional
@@ -23,18 +20,9 @@ except ImportError:
 
 
 def get_config(key: str, default: Optional[str] = None) -> Optional[str]:
-    """
-    取得配置值，優先順序：
-    1. Streamlit secrets (適合部署)
-    2. 環境變數 (適合本地開發)
-    3. 預設值
+    """取得配置值
     
-    Args:
-        key: 配置鍵名
-        default: 預設值
-        
-    Returns:
-        配置值或 None
+    優先順序: Streamlit secrets -> 環境變數 -> 預設值
     """
     # 1. 嘗試從 Streamlit secrets 讀取
     if STREAMLIT_AVAILABLE and hasattr(st, 'secrets'):
@@ -43,29 +31,29 @@ def get_config(key: str, default: Optional[str] = None) -> Optional[str]:
         except:
             pass
     
-    # 2. 從環境變數讀取
+    # 環境變數
     value = os.getenv(key)
     if value:
         return value
     
-    # 3. 回傳預設值
+    # 預設值
     return default
 
 
 # GitHub API 配置
 GITHUB_TOKEN = get_config('GITHUB_TOKEN')
 GITHUB_API_URL = 'https://api.github.com'
-MAX_REPOS_PER_SEARCH = 50  # 限制搜尋結果數量，避免速率限制
+MAX_REPOS_PER_SEARCH = 50
 
 # Embedding 配置
-EMBEDDING_METHOD = get_config('EMBEDDING_METHOD', 'local')  # 'local' 或 'gemini'
+EMBEDDING_METHOD = get_config('EMBEDDING_METHOD', 'local')
 GEMINI_API_KEY = get_config('GEMINI_API_KEY')
 
 # 本地 Embedding 模型配置
 LOCAL_EMBEDDING_MODEL = 'all-MiniLM-L6-v2'
 
 # t-SNE 配置
-TSNE_PERPLEXITY = 5  # 推薦值：樣本數的 1/10
+TSNE_PERPLEXITY = 5
 TSNE_RANDOM_STATE = 42
 
 
@@ -83,7 +71,7 @@ def validate_config():
 
 
 if __name__ == '__main__':
-    # 測試配置載入
+    # 測試
     print("配置檢查：")
     print(f"GitHub Token: {'已設定' if GITHUB_TOKEN else '未設定'}")
     print(f"Gemini API Key: {'已設定' if GEMINI_API_KEY else '未設定'}")

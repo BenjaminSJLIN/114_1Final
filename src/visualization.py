@@ -1,7 +1,4 @@
-"""
-Plotly 視覺化模組
-建立互動式的 GitHub 倉庫語義地圖
-"""
+"""Plotly 視覺化"""
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -10,23 +7,19 @@ from typing import Optional
 
 def create_scatter_plot(
     df: pd.DataFrame,
-    title: str = "GitHub Repository Galaxy",
+    title: str = "GitHub Explorer",
     color_by: str = 'language',
     size_by: str = 'stars',
     show_labels: bool = True
 ) -> go.Figure:
-    """
-    建立互動式散點圖，展示倉庫的語義分布
+    """建立互動式散點圖
     
     Args:
-        df: 包含 x, y, name, description, stars, url 等欄位的 DataFrame
+        df: 資料 (x, y, name, description, stars, url)
         title: 圖表標題
-        color_by: 用於顏色編碼的欄位 (預設依程式語言)
-        size_by: 用於大小編碼的欄位 (預設依星星數)
+        color_by: 顏色編碼欄位
+        size_by: 大小編碼欄位
         show_labels: 是否顯示標籤
-        
-    Returns:
-        Plotly Figure 物件
     """
     # 確保必要欄位存在
     required_cols = ['x', 'y', 'name']
@@ -39,7 +32,7 @@ def create_scatter_plot(
         'name': True,
         'description': True,
         'stars': ':,',  # 千分位格式
-        'url': False,  # 不在 hover 中顯示（會在 customdata 中）
+        'url': False,
         'x': False,  # 隱藏座標
         'y': False
     }
@@ -68,7 +61,7 @@ def create_scatter_plot(
         size_max=30
     )
     
-    # 自訂 hover 模板（包含點擊提示和 URL）
+    # hover 模板
     fig.update_traces(
         hovertemplate='<b>%{hovertext}</b><br>' +
                       '%{customdata[0]:,} stars<br>' +
@@ -84,11 +77,11 @@ def create_scatter_plot(
         )
     )
     
-    # 如果使用者要求顯示標籤就顯示（不再有數量限制）
+    # 顯示標籤
     if show_labels:
         repo_names = df['name'].str.split('/').str[-1]
         
-        # 根據倉庫數量動態調整字體大小
+        # 動態調整字體
         if len(df) <= 20:
             font_size = 10
         elif len(df) <= 50:
@@ -147,17 +140,7 @@ def create_cluster_summary_plot(
     cluster_labels: list,
     title: str = "Repository Clusters"
 ) -> go.Figure:
-    """
-    建立帶聚類標籤的散點圖（未來功能：與 LLM 整合時使用）
-    
-    Args:
-        df: 倉庫資料 DataFrame
-        cluster_labels: 聚類標籤列表
-        title: 圖表標題
-        
-    Returns:
-        Plotly Figure 物件
-    """
+    """建立帶聚類標籤的散點圖（未來功能）"""
     df_with_clusters = df.copy()
     df_with_clusters['cluster'] = cluster_labels
     
@@ -200,7 +183,7 @@ if __name__ == '__main__':
         print("視覺化測試成功！")
         print("提示: 在 Streamlit 中使用 st.plotly_chart(fig) 顯示圖表")
         
-        # 儲存為 HTML（可選）
+        # 儲存 HTML
         # fig.write_html('test_plot.html')
         # print("📊 測試圖表已儲存為 test_plot.html")
         

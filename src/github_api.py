@@ -1,7 +1,4 @@
-"""
-GitHub API 資料獲取模組
-負責從 GitHub 搜尋並獲取倉庫資訊
-"""
+"""GitHub API 資料獲取"""
 import time
 from typing import List, Optional
 import pandas as pd
@@ -10,7 +7,7 @@ from src.config import GITHUB_TOKEN, GITHUB_API_URL, MAX_REPOS_PER_SEARCH
 
 
 class GitHubAPIError(Exception):
-    """GitHub API 錯誤"""
+    """錯誤類別"""
     pass
 
 
@@ -20,26 +17,13 @@ def fetch_repos_by_keyword(
     sort_by: str = 'stars',
     language: Optional[str] = None
 ) -> pd.DataFrame:
-    """
-    根據關鍵字搜尋 GitHub 倉庫並回傳 DataFrame
+    """搜尋 GitHub 倉庫
     
     Args:
-        keyword: 搜尋關鍵字 (例如: "machine learning", "web framework")
-        max_results: 最大結果數量 (預設 50，避免速率限制和 t-SNE 計算過慢)
-        sort_by: 排序方式 ('stars', 'forks', 'updated')
-        language: 篩選程式語言 (可選，例如: "Python", "JavaScript")
-        
-    Returns:
-        包含以下欄位的 DataFrame:
-        - name: 倉庫名稱
-        - description: 倉庫描述
-        - stars: 星星數量
-        - url: 倉庫 URL
-        - topics: 主題標籤 (列表)
-        - language: 主要程式語言
-        
-    Raises:
-        GitHubAPIError: API 請求失敗時拋出
+        keyword: 搜尋關鍵字
+        max_results: 最大結果數
+        sort_by: 排序方式
+        language: 篩選語言
     """
     if not GITHUB_TOKEN:
         raise GitHubAPIError(
@@ -62,7 +46,7 @@ def fetch_repos_by_keyword(
         'q': query,
         'sort': sort_by,
         'order': 'desc',
-        'per_page': min(max_results, 100)  # GitHub API 單頁最多 100 筆
+        'per_page': min(max_results, 100)
     }
     
     try:
@@ -96,7 +80,7 @@ def fetch_repos_by_keyword(
         for item in data.get('items', [])[:max_results]:
             repos.append({
                 'name': item.get('full_name', 'Unknown'),
-                'description': item.get('description') or 'No description available',  # 處理空描述
+                'description': item.get('description') or 'No description available',
                 'stars': item.get('stargazers_count', 0),
                 'url': item.get('html_url', ''),
                 'topics': item.get('topics', []),
@@ -115,16 +99,7 @@ def fetch_repos_by_keyword(
 
 
 def get_repo_details(owner: str, repo: str) -> dict:
-    """
-    取得單一倉庫的詳細資訊（未來擴展用）
-    
-    Args:
-        owner: 倉庫擁有者
-        repo: 倉庫名稱
-        
-    Returns:
-        倉庫詳細資訊字典
-    """
+    """取得倉庫詳細資訊"""
     headers = {
         'Authorization': f'token {GITHUB_TOKEN}',
         'Accept': 'application/vnd.github.v3+json'
@@ -141,7 +116,7 @@ def get_repo_details(owner: str, repo: str) -> dict:
 
 
 if __name__ == '__main__':
-    # 測試 API 功能
+    # 測試
     print("測試 GitHub API 模組...")
     
     try:
